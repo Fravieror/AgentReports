@@ -141,7 +141,7 @@ if not downloaded_file:
 print("Download successful:", downloaded_file)
 
 
-EMAIL_TO = "lfravierl@gmail.com"
+EMAIL_TO = os.getenv("GMAIL_USER")
 
 # === 9. Send Email ===
 yag = yagmail.SMTP(os.getenv("GMAIL_USER"), os.getenv("GMAIL_APP_PASSWORD"))
