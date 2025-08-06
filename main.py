@@ -16,7 +16,11 @@ import os
 import yagmail
 import shutil
 from urllib.parse import urljoin
+from dotenv import load_dotenv, dotenv_values 
+import pandas as pd
+from twilio.rest import Client
 
+load_dotenv()
 
 # Create a temporary directory for user data
 user_data_dir = tempfile.mkdtemp()
@@ -25,7 +29,7 @@ options = Options()
 options.add_argument(f"--user-data-dir={user_data_dir}")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
-# options.add_argument("--headless")
+options.add_argument("--headless")
 
 options.add_experimental_option("prefs", {
     "download.default_directory": user_data_dir,
@@ -140,19 +144,62 @@ if not downloaded_file:
 
 print("Download successful:", downloaded_file)
 
+# Twilio credentials (store securely in Colab or environment)
+TWILIO_ACCOUNT_SID = os.getenv('twilio_sid')
+TWILIO_AUTH_TOKEN = os.getenv('twilio_token')
+TWILIO_WHATSAPP_NUMBER = 'whatsapp:+14155238886'  # Twilio sandbox sender
+RECIPIENT_WHATSAPP_NUMBERS = [
+    'whatsapp:+573204665867'
+]  # Replace with verified number
 
-EMAIL_TO = os.getenv("GMAIL_USER")
+client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# === 9. Send Email ===
-yag = yagmail.SMTP(os.getenv("GMAIL_USER"), os.getenv("GMAIL_APP_PASSWORD"))
-yag.send(
-    to=EMAIL_TO,
-    subject="Daily TEDA operation report",
-    contents="FYI",
-    attachments=downloaded_file
-)
 
-print(f"Report sent to {EMAIL_TO}")
+def send_whatsapp(subject, body):
+    message = f"*{subject}*\n{body}"
+    for number in RECIPIENT_WHATSAPP_NUMBERS:
+        try:
+            message = client.messages.create(
+                body=message,
+                from_=TWILIO_WHATSAPP_NUMBER,
+                to=number
+            )
+            print(f"Message sent to {number}: {message.sid}")
+        except Exception as e:
+            print(f"Failed to send to {number}: {e}")
+            
+
+def extract_float(value):
+    if isinstance(value, str):
+        return float(value.split()[0])
+    return float(value)
+
+xlsx_file = downloaded_file
+if xlsx_file:
+    df = pd.read_excel(xlsx_file, skiprows=5)
+
+    # Clean column names: strip spaces, lowercase
+    df.columns = df.columns.str.strip().str.lower()
+
+    top_speed = extract_float(df.loc[0, 'top speed'])
+    distance = extract_float(df.loc[0, 'distance'])
+    device = df.loc[0, 'device']
+
+    if top_speed > 80:
+        send_whatsapp(
+            "⚠️ Alerta: Límite de velocidad excedido",
+            f"Dispositivo: {device}\nLa velocidad máxima registrada hoy fue de {top_speed} km/h, lo cual excede el límite de 80 km/h."
+        )
+
+    if distance > 150:
+        send_whatsapp(
+            "⚠️ Alerta: Distancia recorrida excesiva",
+            f"Dispositivo: {device}\nLa distancia registrada hoy fue de {distance} km, lo cual excede el límite de 150 km."
+        )
+else:
+    print("No valid Excel file found to process.")
+
+
 
 # === Cleanup ===
 
