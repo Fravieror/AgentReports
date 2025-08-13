@@ -25,6 +25,7 @@ from twilio.rest import Client
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
+import csv
 
 load_dotenv()
 
@@ -64,6 +65,28 @@ CNG_MAX_RANGE_KM = CNG_TANK_CAPACITY_GGE * FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GA
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
 client_gs = gspread.authorize(creds)
+
+MAINTENANCE_SCHEDULE = {
+    "Duster 2021 1.0 TCe (Gasolina)": {
+        "Aceite de motor": 15000,
+        "Filtro de aire (motor)": 15000,
+        "Filtro de combustible": 15000,
+        "Bujías": 30000,
+        "Correa serpentina / alternador": 60000,
+        "Refrigerante": 90000,
+        "Aceite de caja de cambios (manual)": 45000,
+        "Filtro de cabina": 15000,
+    }
+}
+
+# Map your device names to vehicle types
+DEVICE_TYPE_MAP = {
+    'HW #3527 FRANSISCO D. GUX075 4.5G #1348': "Duster 2021 1.0 TCe (Gasolina)",
+    'HW #3052 SANTIAGO D. LZO633 4.5G #714': "Duster 2021 1.0 TCe (Gasolina)",
+    'HW #3637 SANTIAGO D. GET266 4.5G #1450': "Duster 2021 1.0 TCe (Gasolina)",
+}
+
+MAINTENANCE_CSV = "maintenance_log.csv"
 
 # Create a temporary directory for user data
 user_data_dir = tempfile.mkdtemp()
@@ -109,6 +132,37 @@ login_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@type=
 login_button.click()
 
 print("Logged in successfully")
+
+def get_last_maintenance(device, component):
+    try:
+        with open(MAINTENANCE_CSV, mode="r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row["device"] == device and row["component"] == component:
+                    return float(row["odometer"])
+    except FileNotFoundError:
+        pass
+    return None
+
+def update_maintenance(device, component, odometer):
+    rows = []
+    found = False
+    try:
+        with open(MAINTENANCE_CSV, mode="r", newline="") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row["device"] == device and row["component"] == component:
+                    row["odometer"] = str(odometer)
+                    found = True
+                rows.append(row)
+    except FileNotFoundError:
+        pass
+    if not found:
+        rows.append({"device": device, "component": component, "odometer": str(odometer)})
+    with open(MAINTENANCE_CSV, mode="w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["device", "component", "odometer"])
+        writer.writeheader()
+        writer.writerows(rows)
 
 def send_email(subject, body):
     msg = MIMEMultipart()
@@ -274,6 +328,20 @@ for devi in devices:
                     f"Distancia: {distance} km\n"
                 )
 
+            # --- MAINTENANCE CHECK ---
+            maintenance_due = []
+            vehicle_type = DEVICE_TYPE_MAP.get(devi)
+            if vehicle_type:
+                for component, interval in MAINTENANCE_SCHEDULE[vehicle_type].items():
+                    last_maint = get_last_maintenance(devi, component)
+                    if last_maint is None or (odometer - last_maint) >= interval:
+                        maintenance_due.append(f"🔧 {component} (cada {interval:,} km) - ¡Revisar!")
+                        update_maintenance(devi, component, odometer)
+
+            # Add maintenance_due to email body
+            if maintenance_due:
+                alerts_email_body.append("🚗 *Mantenimientos requeridos:*\n" + "\n".join(maintenance_due) + "\n")
+            
             # --- FUEL SPLIT CALCULATION ---
             PRICE_PER_GALLON_COP_GASOLINE = 15869
             PRICE_PER_GGE_COP_NATURAL_GAS = 8500
@@ -308,6 +376,7 @@ for devi in devices:
 
             # Append data to the Google Sheet
             sheet.append_row([
+                month_year,                 # Month-Year
                 devi,
                 str(report_date),           # Date
                 round(fuel_gge_cng, 2),     # CNG consumption (gal)
@@ -315,7 +384,9 @@ for devi in devices:
                 round(fuel_cost_cng, 0),    # CNG cost (COP)
                 round(fuel_cost_gasoline, 0),  # Gasoline cost (COP)
                 round(distance, 2),         # Distance (km)
-                month_year                  # Month-Year
+                top_speed,                  # Top speed (km/h)
+                odometer,                   # Odometer (km)
+                oil_change_required         # Oil change required (bool)
             ])
             
         except Exception as e:
