@@ -68,7 +68,7 @@ client_gs = gspread.authorize(creds)
 
 MAINTENANCE_SCHEDULE = {
     "Duster 2021 1.0 TCe (Gasolina)": {
-        "Aceite de motor": 15000,
+        "Aceite de motor": 10000,
         "Filtro de aire (motor)": 15000,
         "Filtro de combustible": 15000,
         "Bujías": 30000,
@@ -385,8 +385,7 @@ for devi in devices:
                 round(fuel_cost_gasoline, 0),  # Gasoline cost (COP)
                 round(distance, 2),         # Distance (km)
                 top_speed,                  # Top speed (km/h)
-                odometer,                   # Odometer (km)
-                oil_change_required         # Oil change required (bool)
+                odometer                   # Odometer (km)         # Oil change required (bool)
             ])
             
         except Exception as e:
