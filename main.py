@@ -57,13 +57,9 @@ PRICE_PER_GGE_COP_NATURAL_GAS = 8500
 FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE = 45.0
 FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS = 96.5
 
-# Natural Gas Tank Capacity in GGE
-CNG_TANK_CAPACITY_GGE = 3.11
-CNG_MAX_RANGE_KM = CNG_TANK_CAPACITY_GGE * FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS
-
 # === Google Sheets setup ===
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name("/home/javier/scripts/TEDA/AgentReports/credentials.json", scope)
 client_gs = gspread.authorize(creds)
 
 MAINTENANCE_SCHEDULE = {
@@ -86,7 +82,7 @@ DEVICE_TYPE_MAP = {
     'HW #3637 SANTIAGO D. GET266 4.5G #1450': "Duster 2021 1.0 TCe (Gasolina)",
 }
 
-MAINTENANCE_CSV = "maintenance_log.csv"
+MAINTENANCE_CSV = "/home/javier/scripts/TEDA/AgentReports/maintenance_log.csv"
 
 # Create a temporary directory for user data
 user_data_dir = tempfile.mkdtemp()
@@ -167,7 +163,9 @@ def update_maintenance(device, component, odometer):
 def send_email(subject, body):
     msg = MIMEMultipart()
     msg["From"] = EMAIL_ACCOUNT
-    msg["To"] = RECIPIENT_EMAIL
+    recipients = [email.strip() for email in RECIPIENT_EMAIL.split(",")]
+    print(recipients)
+    msg["To"] = ",".join(recipients)
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
 
@@ -175,7 +173,7 @@ def send_email(subject, body):
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
             server.starttls()
             server.login(EMAIL_ACCOUNT, EMAIL_PASSWORD)
-            server.sendmail(EMAIL_ACCOUNT, RECIPIENT_EMAIL, msg.as_string())
+            server.sendmail(EMAIL_ACCOUNT, recipients, msg.as_string())
         print(f"Email sent: {subject}")
     except Exception as e:
         print(f"Email failed: {e}")
@@ -286,7 +284,7 @@ for devi in devices:
         if files:
             downloaded_file = os.path.join(user_data_dir, files[0])
             break
-        time.sleep(1)
+        time.sleep(2)
 
     if not downloaded_file:
         print("Download failed.")
@@ -347,14 +345,14 @@ for devi in devices:
             PRICE_PER_GGE_COP_NATURAL_GAS = 8500
             FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE = 47.0
             FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS = 53.0
-            CNG_TANK_CAPACITY_GGE = 13.1
+            CNG_TANK_CAPACITY_GGE = 3.7
             CNG_MAX_RANGE_KM = CNG_TANK_CAPACITY_GGE * FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS
 
             if distance <= CNG_MAX_RANGE_KM:
                 fuel_gge_cng = distance / FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS
                 fuel_cost_cng = fuel_gge_cng * PRICE_PER_GGE_COP_NATURAL_GAS
-                fuel_gallons_gasoline = 0
-                fuel_cost_gasoline = 0
+                fuel_gallons_gasoline = (distance * 0.1) / FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE
+                fuel_cost_gasoline = fuel_gallons_gasoline * PRICE_PER_GALLON_COP_GASOLINE
             else:
                 fuel_gge_cng = CNG_TANK_CAPACITY_GGE
                 fuel_cost_cng = fuel_gge_cng * PRICE_PER_GGE_COP_NATURAL_GAS
