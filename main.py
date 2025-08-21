@@ -350,10 +350,13 @@ for devi in devices:
             # --- FUEL SPLIT CALCULATION ---
             PRICE_PER_GALLON_COP_GASOLINE = 15869
             PRICE_PER_GGE_COP_NATURAL_GAS = 8500
+            # Air Conditioning factor (default: +10% consumption)
+            # 1.0 = A/C off, 1.1 = A/C on
+            AC_FACTOR = 1.10 # 10% EXTRA CONSUMPTION ON AVERAGE
             # FLAT ROAD = 1.0 LIGHT HILLS = 1.1 HEAVY HILLS = 1.25
             TERRAIN_FACTOR = 1.15 # 15% EXTRA CONSUMPTION ON AVERAGE
-            FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE = 47.0 / TERRAIN_FACTOR
-            FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS = 53.0 / TERRAIN_FACTOR
+            FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE = 47.0 / (TERRAIN_FACTOR * AC_FACTOR)
+            FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS = 53.0 / (TERRAIN_FACTOR * AC_FACTOR)
             CNG_TANK_CAPACITY_GGE = 3.7
             CNG_MAX_RANGE_KM = CNG_TANK_CAPACITY_GGE * FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS
 
@@ -372,6 +375,7 @@ for devi in devices:
             alerts_email_body.append(
                 f"⛽ Consumo estimado - {devi}\n"
                 f"Distancia: {distance:.1f} km\n"
+                f"Terreno (factor): 15% extra en promedio | A/C (factor): 10% extra en promedio\n"
                 f"CNG: {fuel_gge_cng:.2f} gal (GGE), {fuel_cost_cng:,.0f} COP\n"
                 f"Gasolina: {fuel_gallons_gasoline:.2f} gal, {fuel_cost_gasoline:,.0f} COP\n"
             )
