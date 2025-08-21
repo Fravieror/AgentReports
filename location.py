@@ -111,6 +111,7 @@ devices = ['HW #3527 FRANSISCO D. GUX075 4.5G #1348']
 
 alerts_email_body = []
 alerts_whatsapp_body = []
+send_email_flag = False
 
 for devi in devices:
     
@@ -215,12 +216,12 @@ for devi in devices:
                 print(f"No data found in the report for device {devi}.")
                 continue
             
-            last_row = df.iloc[-1, 1]
-            print(last_row)
-            end_address = last_row.get('start address', 'N/A')
+            last_location = df.iloc[-1, 1]
+            print(last_location)
 
-            if end_address != 'Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia':
-                alerts_email_body.append(f"Alerta: El dispositivo {devi} terminó en una ubicación inesperada: {end_address}\n")
+            if last_location != 'Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia':
+                send_email_flag = True
+                alerts_email_body.append(f"Alerta: El dispositivo {devi} terminó en una ubicación inesperada: {last_location}\n")
             
         except Exception as e:
             print(e)
@@ -237,7 +238,8 @@ for devi in devices:
 # --- SEND ONLY ONCE ---
 if alerts_email_body:
     combined_body = "\n".join(alerts_email_body)
-   #send_email("Reporte diario de ubicaciones", combined_body)
+    if send_email_flag:
+        send_email("Reporte diario de ubicaciones", combined_body)
 
 # === Cleanup ===
 
