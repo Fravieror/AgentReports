@@ -29,6 +29,11 @@ import csv
 
 load_dotenv()
 
+def extract_float(value):
+    if isinstance(value, str):
+        return float(value.split()[0])
+    return float(value)
+
 # Step 3: Define email credentials and config
 EMAIL_ACCOUNT = os.getenv('gmail_us')
 EMAIL_PASSWORD = os.getenv('gmail_pw')  # Use app password if 2FA is enabled
