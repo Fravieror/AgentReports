@@ -127,13 +127,16 @@ for devi in devices:
 
     device_dropdown.click()
 
+    # Type the device name (helps filtering options in MUI Autocomplete)
+    device_dropdown.send_keys(devi)
+    time.sleep(1)
+
     device_option = wait.until(
         EC.presence_of_element_located((By.XPATH, f"//li[contains(text(), '{devi}')]"))
     )
-
+    driver.execute_script("arguments[0].click();", device_option)
+    print(f"✅ Selected device: {devi}")
     time.sleep(1)
-
-    print("Dropdown opened")
 
     try:
         wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "MuiBackdrop-root")))
