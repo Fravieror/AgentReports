@@ -307,6 +307,17 @@ for devi in devices:
             top_speed = extract_float(df.loc[0, 'top speed'])
             distance = extract_float(df.loc[0, 'distance'])
             odometer = extract_float(df.loc[0, 'end odometer'])
+            engine_hours = extract_float(df.loc[0, 'engine hours'])
+
+            # --- ENGINE HOURS ALERT ---
+            if engine_hours > 0:
+                avg_speed = distance / engine_hours
+                if avg_speed < 25:  # Threshold: avg < 25 km/h means too many hours for distance
+                    alerts_email_body.append(
+                        f"⚠️ Posible uso ineficiente - {devi}\n"
+                        f"Distancia: {distance:.1f} km, Horas de motor: {engine_hours:.1f} h\n"
+                        f"Velocidad promedio: {avg_speed:.1f} km/h (muy baja para zona rural)\n"
+                    )
 
             # --- SPEED CHECK ---
             if top_speed > 80:
