@@ -215,7 +215,8 @@ for devi in devices:
                 print(f"No data found in the report for device {devi}.")
                 continue
             
-            last_row = df.iloc[-1]
+            last_row = df.iloc[-1, 1]
+            print(last_row)
             end_address = last_row.get('start address', 'N/A')
 
             if end_address != 'Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia':
@@ -236,7 +237,7 @@ for devi in devices:
 # --- SEND ONLY ONCE ---
 if alerts_email_body:
     combined_body = "\n".join(alerts_email_body)
-    send_email("Reporte diario de alertas y consumo", combined_body)
+   #send_email("Reporte diario de ubicaciones", combined_body)
 
 # === Cleanup ===
 
