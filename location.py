@@ -68,7 +68,7 @@ options.binary_location = shutil.which("chromium-browser") or shutil.which("chro
 options.add_argument(f"--user-data-dir={user_data_dir}")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
-# options.add_argument("--headless")
+options.add_argument("--headless")
 
 options.add_experimental_option("prefs", {
     "download.default_directory": user_data_dir,
