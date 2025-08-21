@@ -53,10 +53,6 @@ client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 PRICE_PER_GALLON_COP_GASOLINE = 15869
 PRICE_PER_GGE_COP_NATURAL_GAS = 8500
 
-# Efficiencies
-FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE = 45.0
-FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS = 96.5
-
 # === Google Sheets setup ===
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_name("/home/javier/scripts/TEDA/AgentReports/credentials.json", scope)
@@ -343,8 +339,10 @@ for devi in devices:
             # --- FUEL SPLIT CALCULATION ---
             PRICE_PER_GALLON_COP_GASOLINE = 15869
             PRICE_PER_GGE_COP_NATURAL_GAS = 8500
-            FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE = 47.0
-            FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS = 53.0
+            # FLAT ROAD = 1.0 LIGHT HILLS = 1.1 HEAVY HILLS = 1.25
+            TERRAIN_FACTOR = 1.15 # 15% EXTRA CONSUMPTION ON AVERAGE
+            FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE = 47.0 / TERRAIN_FACTOR
+            FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS = 53.0 / TERRAIN_FACTOR
             CNG_TANK_CAPACITY_GGE = 3.7
             CNG_MAX_RANGE_KM = CNG_TANK_CAPACITY_GGE * FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS
 
