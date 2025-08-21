@@ -209,11 +209,18 @@ for devi in devices:
 
             # Clean column names: strip spaces, lowercase
             df.columns = df.columns.str.strip().str.lower()
-            print(df.rows.count)
+            
+            # Get the last row for the address
+            if df.empty:
+                print(f"No data found in the report for device {devi}.")
+                continue
+            
+            last_row = df.iloc[-1]
+            end_address = last_row.get('start address', 'N/A')
 
-            location = extract_float(df.loc[0, 'start address'])
-            print(location)
-
+            if end_address != 'Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia':
+                alerts_email_body.append(f"Alerta: El dispositivo {devi} terminó en una ubicación inesperada: {end_address}\n")
+            
         except Exception as e:
             print(e)
         
