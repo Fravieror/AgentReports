@@ -194,10 +194,6 @@ def extract_float(value):
         return float(value.split()[0])
     return float(value)
 
-def time_to_float_hours(time_str: str) -> float:
-    h, m, s = map(int, time_str.split(":"))
-    return h + m/60 + s/3600
-
 # Open the dropdown (using ARIA role is more reliable than CSS class)
 
 # === 4. Select Device ===
@@ -311,12 +307,12 @@ for devi in devices:
             top_speed = extract_float(df.loc[0, 'top speed'])
             distance = extract_float(df.loc[0, 'distance'])
             odometer = extract_float(df.loc[0, 'end odometer'])
-            engine_hours = time_to_float_hours(df.loc[0, 'engine hours'])
+            engine_hours = df.loc[0, 'engine hours'].total_seconds() / 3600
 
             # --- ENGINE HOURS ALERT ---
             if engine_hours > 0:
                 avg_speed = distance / engine_hours
-                if avg_speed < 25:  # Threshold: avg < 25 km/h means too many hours for distance
+                if avg_speed < 20:  # Threshold: avg < 20 km/h means too many hours for distance
                     alerts_email_body.append(
                         f"⚠️ Posible uso ineficiente - {devi}\n"
                         f"Distancia: {distance:.1f} km, Horas de motor: {engine_hours:.1f} h\n"
