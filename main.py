@@ -194,6 +194,10 @@ def extract_float(value):
         return float(value.split()[0])
     return float(value)
 
+def time_to_float_hours(time_str: str) -> float:
+    h, m, s = map(int, time_str.split(":"))
+    return h + m/60 + s/3600
+
 # Open the dropdown (using ARIA role is more reliable than CSS class)
 
 # === 4. Select Device ===
@@ -307,7 +311,7 @@ for devi in devices:
             top_speed = extract_float(df.loc[0, 'top speed'])
             distance = extract_float(df.loc[0, 'distance'])
             odometer = extract_float(df.loc[0, 'end odometer'])
-            engine_hours = extract_float(df.loc[0, 'engine hours'])
+            engine_hours = time_to_float_hours(df.loc[0, 'engine hours'])
 
             # --- ENGINE HOURS ALERT ---
             if engine_hours > 0:
