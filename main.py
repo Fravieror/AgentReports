@@ -312,7 +312,7 @@ for devi in devices:
             # --- ENGINE HOURS ALERT ---
             if engine_hours > 0:
                 avg_speed = distance / engine_hours
-                if avg_speed < 20:  # Threshold: avg < 20 km/h means too many hours for distance
+                if avg_speed < 10:  # Threshold: avg < 10 km/h means too many hours for distance
                     alerts_email_body.append(
                         f"⚠️ Posible uso ineficiente - {devi}\n"
                         f"Distancia: {distance:.1f} km, Horas de motor: {engine_hours:.1f} h\n"
@@ -352,7 +352,7 @@ for devi in devices:
             PRICE_PER_GGE_COP_NATURAL_GAS = 8500
             # Air Conditioning factor (default: +10% consumption)
             # 1.0 = A/C off, 1.1 = A/C on
-            AC_FACTOR = 1.10 # 10% EXTRA CONSUMPTION ON AVERAGE
+            AC_FACTOR = 1.20 # 20% EXTRA CONSUMPTION ON AVERAGE
             # FLAT ROAD = 1.0 LIGHT HILLS = 1.1 HEAVY HILLS = 1.25
             TERRAIN_FACTOR = 1.15 # 15% EXTRA CONSUMPTION ON AVERAGE
             FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE = 47.0 / (TERRAIN_FACTOR * AC_FACTOR)
