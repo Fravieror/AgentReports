@@ -35,7 +35,11 @@ TWILIO_ACCOUNT_SID = os.getenv('twilio_sid')
 TWILIO_AUTH_TOKEN = os.getenv('twilio_token')
 TWILIO_WHATSAPP_NUMBER = 'whatsapp:+14155238886'  # Twilio sandbox sender
 RECIPIENT_WHATSAPP_NUMBERS = [
+<<<<<<< HEAD
     'whatsapp:+570'
+=======
+    'whatsapp:+573204665867'
+>>>>>>> ef712bccc4904d1334346388caa43e7a1175755f
 ]  # Replace with verified number
 
 # Step 3: Define email credentials and config
@@ -76,6 +80,12 @@ MAINTENANCE_SCHEDULE = {
 
 # Map your device names to vehicle types
 DEVICE_TYPE_MAP = {
+<<<<<<< HEAD
+=======
+    'HW #3527 FRANSISCO D. GUX075 4.5G #1348': "Duster 2021 1.0 TCe (Gasolina)",
+    'HW #3052 SANTIAGO D. LZO633 4.5G #714': "Duster 2021 1.0 TCe (Gasolina)",
+    'HW #3637 SANTIAGO D. GET266 4.5G #1450': "Duster 2021 1.0 TCe (Gasolina)",
+>>>>>>> ef712bccc4904d1334346388caa43e7a1175755f
 }
 
 MAINTENANCE_CSV = "/home/javier/scripts/TEDA/AgentReports/maintenance_log.csv"
