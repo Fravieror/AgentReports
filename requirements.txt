@@ -1,0 +1,9 @@
+selenium
+webdriver-manager
+python-dotenv
+yagmail
+twilio
+pandas
+openpyxl
+gspread
+oauth2client
