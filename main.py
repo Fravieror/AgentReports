@@ -68,6 +68,9 @@ MAINTENANCE_SCHEDULE = {
         "Refrigerante": 90000,
         "Aceite de caja de cambios (manual)": 45000,
         "Filtro de cabina": 15000,
+        "Discos freno": 80000,
+        "Pastillas freno": 30000,
+        "Bateria": 90000,
     }
 }
 
