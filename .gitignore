@@ -1,2 +1,5 @@
 .env
 /venv
+script.log
+script_location.log
+credentials.json
