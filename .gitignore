@@ -3,3 +3,4 @@
 script.log
 script_location.log
 credentials.json
+/__pycache__
