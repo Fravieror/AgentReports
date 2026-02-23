@@ -219,7 +219,11 @@ for devi in devices:
             last_location = df.iloc[-1, 1]
             print(last_location)
 
-            if last_location != 'Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia':
+            allowed_locations = {
+                'Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia',
+                'Colsubsidio Bosques de Athán, Calle 10, Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia'
+            }
+            if last_location not in allowed_locations:
                 send_email_flag = True
                 alerts_email_body.append(f"Alerta: El dispositivo {devi} terminó en una ubicación inesperada: {last_location}\n")
             
