@@ -221,7 +221,8 @@ for devi in devices:
 
             allowed_locations = {
                 'Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia',
-                'Colsubsidio Bosques de Athán, Calle 10, Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia'
+                'Colsubsidio Bosques de Athán, Calle 10, Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia',
+                'Calle 12, Ricaurte, Alto Magdalena, Cundinamarca, RAP (Especial) Central, 252431, Colombia'
             }
             if last_location not in allowed_locations:
                 send_email_flag = True

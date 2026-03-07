@@ -130,35 +130,44 @@ login_button.click()
 print("Logged in successfully")
 
 def get_last_maintenance(device, component):
+    # Return the most recent (max) odometer for the given device/component
+    max_odometer = None
     try:
         with open(MAINTENANCE_CSV, mode="r", newline="") as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row["device"] == device and row["component"] == component:
-                    return float(row["odometer"])
+                if row.get("device") == device and row.get("component") == component:
+                    try:
+                        val = float(row.get("odometer", ""))
+                    except Exception:
+                        continue
+                    if max_odometer is None or val > max_odometer:
+                        max_odometer = val
     except FileNotFoundError:
         pass
-    return None
+    return max_odometer
 
 def update_maintenance(device, component, odometer):
-    rows = []
-    found = False
+    # Append a new maintenance record (history) with a timestamp instead of updating in-place
+    fieldnames = ["device", "component", "odometer", "date"]
+    write_header = False
     try:
-        with open(MAINTENANCE_CSV, mode="r", newline="") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row["device"] == device and row["component"] == component:
-                    row["odometer"] = str(odometer)
-                    found = True
-                rows.append(row)
-    except FileNotFoundError:
-        pass
-    if not found:
-        rows.append({"device": device, "component": component, "odometer": str(odometer)})
-    with open(MAINTENANCE_CSV, mode="w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["device", "component", "odometer"])
-        writer.writeheader()
-        writer.writerows(rows)
+        # If file doesn't exist or is empty, we'll need to write header
+        if not os.path.exists(MAINTENANCE_CSV) or os.path.getsize(MAINTENANCE_CSV) == 0:
+            write_header = True
+    except Exception:
+        write_header = True
+
+    with open(MAINTENANCE_CSV, mode="a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        if write_header:
+            writer.writeheader()
+        writer.writerow({
+            "device": device,
+            "component": component,
+            "odometer": str(odometer),
+            "date": datetime.now().isoformat()
+        })
 
 def send_email(subject, body):
     msg = MIMEMultipart()
