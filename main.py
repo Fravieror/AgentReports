@@ -373,17 +373,15 @@ for devi in devices:
             CNG_TANK_CAPACITY_GGE = 3.7
             CNG_MAX_RANGE_KM = CNG_TANK_CAPACITY_GGE * FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS
 
-            if distance <= CNG_MAX_RANGE_KM:
-                fuel_gge_cng = distance / FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS
-                fuel_cost_cng = fuel_gge_cng * PRICE_PER_GGE_COP_NATURAL_GAS
-                fuel_gallons_gasoline = (distance * 0.1) / FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE
-                fuel_cost_gasoline = fuel_gallons_gasoline * PRICE_PER_GALLON_COP_GASOLINE
-            else:
-                fuel_gge_cng = CNG_TANK_CAPACITY_GGE
-                fuel_cost_cng = fuel_gge_cng * PRICE_PER_GGE_COP_NATURAL_GAS
-                remaining_km = distance - CNG_MAX_RANGE_KM
-                fuel_gallons_gasoline = remaining_km / FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE
-                fuel_cost_gasoline = fuel_gallons_gasoline * PRICE_PER_GALLON_COP_GASOLINE
+            # Use 60% of the trip on gasoline and 40% on natural gas
+            gasoline_km = distance * 0.60
+            cng_km = distance * 0.40
+
+            fuel_gge_cng = cng_km / FUEL_EFFICIENCY_KM_PER_GGE_NATURAL_GAS
+            fuel_cost_cng = fuel_gge_cng * PRICE_PER_GGE_COP_NATURAL_GAS
+
+            fuel_gallons_gasoline = gasoline_km / FUEL_EFFICIENCY_KM_PER_GALLON_GASOLINE
+            fuel_cost_gasoline = fuel_gallons_gasoline * PRICE_PER_GALLON_COP_GASOLINE
 
             alerts_email_body.append(
                 f"⛽ Consumo estimado - {devi}\n"
