@@ -10,7 +10,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import TimeoutException
-from webdriver_manager.chrome import ChromeDriverManager
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -197,9 +196,11 @@ def send_whatsapp(subject, body):
     wa_options.add_argument(f"--user-data-dir={WHATSAPP_SESSION_DIR}")
     wa_options.add_argument("--no-sandbox")
     wa_options.add_argument("--disable-dev-shm-usage")
+    # wa_options.add_argument("--headless")
 
+    wa_options.binary_location = "/usr/bin/chromium-browser"
     wa_driver = webdriver.Chrome(
-        service=Service(ChromeDriverManager().install()),
+        service=Service("/usr/bin/chromedriver"),
         options=wa_options
     )
     wa_wait = WebDriverWait(wa_driver, 60)
@@ -207,18 +208,23 @@ def send_whatsapp(subject, body):
     try:
         wa_driver.get("https://web.whatsapp.com")
 
-        # Wait for chat list — on first run, scan the QR code within 60s
+        # Wait for chat list (aria-label varies by language: "Chat list" / "Lista de chats")
         wa_wait.until(EC.presence_of_element_located(
-            (By.XPATH, '//div[@aria-label="Chat list"]')
+            (By.XPATH, '//div[contains(@aria-label,"Chat list") or contains(@aria-label,"Lista de chats") or contains(@aria-label,"chat")]')
         ))
+
+        # Debug: print all contenteditable elements' attributes
+        elements = wa_driver.find_elements(By.XPATH, '//*[@contenteditable="true"]')
+        for el in elements:
+            print(f"contenteditable el: tag={el.tag_name}, aria-label={el.get_attribute('aria-label')}, data-tab={el.get_attribute('data-tab')}, title={el.get_attribute('title')}, placeholder={el.get_attribute('placeholder')}")
 
         # Search for the group
         search = wa_wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//div[@contenteditable="true"][@data-tab="3"]')
+            (By.XPATH, '//div[@contenteditable="true"][@aria-label="Search input textbox" or @title="Search input textbox" or @data-tab="3"]')
         ))
         search.click()
         search.send_keys(WHATSAPP_GROUP_NAME)
-        time.sleep(2)
+        time.sleep(3)
 
         # Click the group in search results
         group = wa_wait.until(EC.element_to_be_clickable(
@@ -241,7 +247,15 @@ def send_whatsapp(subject, body):
         time.sleep(2)
         print(f"WhatsApp message sent to group '{WHATSAPP_GROUP_NAME}'")
     except Exception as e:
-        print(f"Failed to send WhatsApp message: {e}")
+        import traceback
+        screenshot_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "wa_debug.png")
+        try:
+            wa_driver.save_screenshot(screenshot_path)
+            print(f"Screenshot saved to {screenshot_path}")
+        except Exception:
+            pass
+        print(f"Failed to send WhatsApp message: {type(e).__name__}: {e}")
+        traceback.print_exc()
     finally:
         wa_driver.quit()
             
@@ -494,10 +508,13 @@ for devi in devices:
 # --- SEND ONLY ONCE ---
 if alerts_email_body:
     combined_body = "\n".join(alerts_email_body)
-    send_email("Reporte diario de alertas y consumo", combined_body)
+    # send_email("Reporte diario de alertas y consumo", combined_body)
 
 if alerts_whatsapp_body:
     combined_whatsapp = "\n".join(alerts_whatsapp_body)
+    print("=== WhatsApp message preview ===")
+    print(f"*Reporte diario de alertas y consumo*\n{combined_whatsapp}")
+    print("================================")
     send_whatsapp("Reporte diario de alertas y consumo", combined_whatsapp)
 
 # === Cleanup ===
