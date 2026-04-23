@@ -30,14 +30,13 @@ import csv
 load_dotenv()
 
 
-# Twilio credentials (store securely in Colab or environment)
+# Twilio credentials
 TWILIO_ACCOUNT_SID = os.getenv('twilio_sid')
 TWILIO_AUTH_TOKEN = os.getenv('twilio_token')
-TWILIO_WHATSAPP_NUMBER = 'whatsapp:+14155238886'  # Twilio sandbox sender
-RECIPIENT_WHATSAPP_NUMBERS = [
-    'whatsapp:+573XXXXXXXXX',  # e.g. whatsapp:+573001234567 — must be opted in to sandbox
-    # 'whatsapp:+573YYYYYYYYY',  # add more opted-in numbers here
-]
+
+# WhatsApp Web via Selenium
+WHATSAPP_GROUP_NAME = os.getenv('WHATSAPP_GROUP_NAME')
+WHATSAPP_SESSION_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'whatsapp_session')
 
 # Step 3: Define email credentials and config
 EMAIL_ACCOUNT = os.getenv('gmail_us')
@@ -190,17 +189,61 @@ def send_email(subject, body):
 
 
 def send_whatsapp(subject, body):
-    text = f"*{subject}*\n{body}"
-    for number in RECIPIENT_WHATSAPP_NUMBERS:
-        try:
-            result = client.messages.create(
-                body=text,
-                from_=TWILIO_WHATSAPP_NUMBER,
-                to=number
-            )
-            print(f"Message sent to {number}: {result.sid}")
-        except Exception as e:
-            print(f"Failed to send to {number}: {e}")
+    if not WHATSAPP_GROUP_NAME:
+        print("WHATSAPP_GROUP_NAME not set in .env — skipping WhatsApp send")
+        return
+
+    wa_options = Options()
+    wa_options.add_argument(f"--user-data-dir={WHATSAPP_SESSION_DIR}")
+    wa_options.add_argument("--no-sandbox")
+    wa_options.add_argument("--disable-dev-shm-usage")
+
+    wa_driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=wa_options
+    )
+    wa_wait = WebDriverWait(wa_driver, 60)
+
+    try:
+        wa_driver.get("https://web.whatsapp.com")
+
+        # Wait for chat list — on first run, scan the QR code within 60s
+        wa_wait.until(EC.presence_of_element_located(
+            (By.XPATH, '//div[@aria-label="Chat list"]')
+        ))
+
+        # Search for the group
+        search = wa_wait.until(EC.element_to_be_clickable(
+            (By.XPATH, '//div[@contenteditable="true"][@data-tab="3"]')
+        ))
+        search.click()
+        search.send_keys(WHATSAPP_GROUP_NAME)
+        time.sleep(2)
+
+        # Click the group in search results
+        group = wa_wait.until(EC.element_to_be_clickable(
+            (By.XPATH, f'//span[@title="{WHATSAPP_GROUP_NAME}"]')
+        ))
+        group.click()
+
+        # Type message — use Shift+Enter for newlines so Enter sends
+        msg_box = wa_wait.until(EC.element_to_be_clickable(
+            (By.XPATH, '//div[@contenteditable="true"][@data-tab="10"]')
+        ))
+        msg_box.click()
+        lines = f"*{subject}*\n{body}".split('\n')
+        for i, line in enumerate(lines):
+            msg_box.send_keys(line)
+            if i < len(lines) - 1:
+                ActionChains(wa_driver).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+
+        msg_box.send_keys(Keys.RETURN)
+        time.sleep(2)
+        print(f"WhatsApp message sent to group '{WHATSAPP_GROUP_NAME}'")
+    except Exception as e:
+        print(f"Failed to send WhatsApp message: {e}")
+    finally:
+        wa_driver.quit()
             
 
 def extract_float(value):
