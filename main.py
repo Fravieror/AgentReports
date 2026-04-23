@@ -35,8 +35,9 @@ TWILIO_ACCOUNT_SID = os.getenv('twilio_sid')
 TWILIO_AUTH_TOKEN = os.getenv('twilio_token')
 TWILIO_WHATSAPP_NUMBER = 'whatsapp:+14155238886'  # Twilio sandbox sender
 RECIPIENT_WHATSAPP_NUMBERS = [
-    'whatsapp:+570'
-]  # Replace with verified number
+    'whatsapp:+573XXXXXXXXX',  # e.g. whatsapp:+573001234567 — must be opted in to sandbox
+    # 'whatsapp:+573YYYYYYYYY',  # add more opted-in numbers here
+]
 
 # Step 3: Define email credentials and config
 EMAIL_ACCOUNT = os.getenv('gmail_us')
@@ -189,15 +190,15 @@ def send_email(subject, body):
 
 
 def send_whatsapp(subject, body):
-    message = f"*{subject}*\n{body}"
+    text = f"*{subject}*\n{body}"
     for number in RECIPIENT_WHATSAPP_NUMBERS:
         try:
-            message = client.messages.create(
-                body=message,
+            result = client.messages.create(
+                body=text,
                 from_=TWILIO_WHATSAPP_NUMBER,
                 to=number
             )
-            print(f"Message sent to {number}: {message.sid}")
+            print(f"Message sent to {number}: {result.sid}")
         except Exception as e:
             print(f"Failed to send to {number}: {e}")
             
@@ -311,6 +312,11 @@ for devi in devices:
                 f"{'-'*30}\n"
 
             )
+            alerts_whatsapp_body.append(
+                f"{'='*30}\n"
+                f"📍 Dispositivo: {devi}\n"
+                f"{'-'*30}\n"
+            )
             
             df = pd.read_excel(xlsx_file, skiprows=5)
 
@@ -331,6 +337,11 @@ for devi in devices:
                         f"Distancia: {distance:.1f} km, Horas de motor: {engine_hours:.1f} h\n"
                         f"Velocidad promedio: {avg_speed:.1f} km/h (muy baja para zona rural)\n"
                     )
+                    alerts_whatsapp_body.append(
+                        f"⚠️ Posible uso ineficiente - {devi}\n"
+                        f"Distancia: {distance:.1f} km, Horas de motor: {engine_hours:.1f} h\n"
+                        f"Velocidad promedio: {avg_speed:.1f} km/h (muy baja para zona rural)\n"
+                    )
 
             # --- SPEED CHECK ---
             if top_speed > 80:
@@ -338,10 +349,18 @@ for devi in devices:
                     f"⚠️ Límite de velocidad excedido - {devi}\n"
                     f"Velocidad máxima: {top_speed} km/h\n"
                 )
+                alerts_whatsapp_body.append(
+                    f"⚠️ Límite de velocidad excedido - {devi}\n"
+                    f"Velocidad máxima: {top_speed} km/h\n"
+                )
 
             # --- DISTANCE CHECK ---
             if distance > 150:
                 alerts_email_body.append(
+                    f"⚠️ Distancia excesiva - {devi}\n"
+                    f"Distancia: {distance} km\n"
+                )
+                alerts_whatsapp_body.append(
                     f"⚠️ Distancia excesiva - {devi}\n"
                     f"Distancia: {distance} km\n"
                 )
@@ -359,6 +378,7 @@ for devi in devices:
             # Add maintenance_due to email body
             if maintenance_due:
                 alerts_email_body.append("🚗 *Mantenimientos requeridos:*\n" + "\n".join(maintenance_due) + "\n")
+                alerts_whatsapp_body.append("🚗 *Mantenimientos requeridos:*\n" + "\n".join(maintenance_due) + "\n")
             
             # --- FUEL SPLIT CALCULATION ---
             PRICE_PER_GALLON_COP_GASOLINE = 15869
@@ -387,6 +407,12 @@ for devi in devices:
                 f"⛽ Consumo estimado - {devi}\n"
                 f"Distancia: {distance:.1f} km\n"
                 f"Terreno (factor): 15% extra en promedio | A/C (factor): 10% extra en promedio\n"
+                f"CNG: {fuel_gge_cng:.2f} gal (GGE), {fuel_cost_cng:,.0f} COP\n"
+                f"Gasolina: {fuel_gallons_gasoline:.2f} gal, {fuel_cost_gasoline:,.0f} COP\n"
+            )
+            alerts_whatsapp_body.append(
+                f"⛽ Consumo estimado - {devi}\n"
+                f"Distancia: {distance:.1f} km\n"
                 f"CNG: {fuel_gge_cng:.2f} gal (GGE), {fuel_cost_cng:,.0f} COP\n"
                 f"Gasolina: {fuel_gallons_gasoline:.2f} gal, {fuel_cost_gasoline:,.0f} COP\n"
             )
@@ -426,6 +452,10 @@ for devi in devices:
 if alerts_email_body:
     combined_body = "\n".join(alerts_email_body)
     send_email("Reporte diario de alertas y consumo", combined_body)
+
+if alerts_whatsapp_body:
+    combined_whatsapp = "\n".join(alerts_whatsapp_body)
+    send_whatsapp("Reporte diario de alertas y consumo", combined_whatsapp)
 
 # === Cleanup ===
 
