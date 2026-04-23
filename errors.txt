@@ -1,0 +1,23 @@
+
+
+[notice] A new release of pip is available: 24.0 -> 26.0.1
+[notice] To update, run: pip install --upgrade pip
+(venv) javier@raspberrypi:~/scripts/TEDA/AgentReports $ python setup_whatsapp_session.py 
+Traceback (most recent call last):
+  File "/home/javier/scripts/TEDA/AgentReports/setup_whatsapp_session.py", line 21, in <module>
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/javier/scripts/TEDA/AgentReports/venv/lib/python3.11/site-packages/selenium/webdriver/chrome/webdriver.py", line 47, in __init__
+    super().__init__(
+  File "/home/javier/scripts/TEDA/AgentReports/venv/lib/python3.11/site-packages/selenium/webdriver/chromium/webdriver.py", line 58, in __init__
+    self.service.start()
+  File "/home/javier/scripts/TEDA/AgentReports/venv/lib/python3.11/site-packages/selenium/webdriver/common/service.py", line 104, in start
+    self._start_process(self._path)
+  File "/home/javier/scripts/TEDA/AgentReports/venv/lib/python3.11/site-packages/selenium/webdriver/common/service.py", line 215, in _start_process
+    self.process = subprocess.Popen(
+                   ^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/subprocess.py", line 1026, in __init__
+    self._execute_child(args, executable, preexec_fn, close_fds,
+  File "/usr/local/lib/python3.11/subprocess.py", line 1955, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+OSError: [Errno 8] Exec format error: '/home/javier/.wdm/drivers/chromedriver/linux64/114.0.5735.90/chromedriver'
