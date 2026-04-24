@@ -213,14 +213,9 @@ def send_whatsapp(subject, body):
             (By.XPATH, '//div[contains(@aria-label,"Chat list") or contains(@aria-label,"Lista de chats") or contains(@aria-label,"chat")]')
         ))
 
-        # Debug: print all contenteditable elements' attributes
-        elements = wa_driver.find_elements(By.XPATH, '//*[@contenteditable="true"]')
-        for el in elements:
-            print(f"contenteditable el: tag={el.tag_name}, aria-label={el.get_attribute('aria-label')}, data-tab={el.get_attribute('data-tab')}, title={el.get_attribute('title')}, placeholder={el.get_attribute('placeholder')}")
-
-        # Search for the group
+        # Search bar is a plain input element
         search = wa_wait.until(EC.element_to_be_clickable(
-            (By.XPATH, '//div[@contenteditable="true"][@aria-label="Search input textbox" or @title="Search input textbox" or @data-tab="3"]')
+            (By.XPATH, '//input[@data-tab="3"]')
         ))
         search.click()
         search.send_keys(WHATSAPP_GROUP_NAME)
