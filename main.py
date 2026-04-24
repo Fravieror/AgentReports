@@ -196,7 +196,6 @@ def send_whatsapp(subject, body):
     wa_options.add_argument(f"--user-data-dir={WHATSAPP_SESSION_DIR}")
     wa_options.add_argument("--no-sandbox")
     wa_options.add_argument("--disable-dev-shm-usage")
-    # wa_options.add_argument("--headless")
 
     wa_options.binary_location = "/usr/bin/chromium-browser"
     wa_driver = webdriver.Chrome(
