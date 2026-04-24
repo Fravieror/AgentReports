@@ -232,14 +232,17 @@ def send_whatsapp(subject, body):
             (By.XPATH, '//div[@contenteditable="true"][@data-tab="10"]')
         ))
         msg_box.click()
-        lines = f"*{subject}*\n{body}".split('\n')
+        lines = [f"*{subject}*"] + body.split('\n')
         for i, line in enumerate(lines):
-            msg_box.send_keys(line)
+            wa_driver.execute_script("arguments[0].focus(); document.execCommand('insertText', false, arguments[1]);", msg_box, line)
             if i < len(lines) - 1:
                 ActionChains(wa_driver).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
 
-        msg_box.send_keys(Keys.RETURN)
-        time.sleep(2)
+        send_btn = wa_wait.until(EC.element_to_be_clickable(
+            (By.XPATH, '//button[@aria-label="Send"]')
+        ))
+        send_btn.click()
+        time.sleep(5)
         print(f"WhatsApp message sent to group '{WHATSAPP_GROUP_NAME}'")
     except Exception as e:
         import traceback
