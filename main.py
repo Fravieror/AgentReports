@@ -241,7 +241,7 @@ def send_whatsapp(subject, body):
             (By.XPATH, '//button[@aria-label="Send"]')
         ))
         send_btn.click()
-        time.sleep(5)
+        time.sleep(30)
         print(f"WhatsApp message sent to group '{WHATSAPP_GROUP_NAME}'")
     except Exception as e:
         import traceback
@@ -505,7 +505,7 @@ for devi in devices:
 # --- SEND ONLY ONCE ---
 if alerts_email_body:
     combined_body = "\n".join(alerts_email_body)
-    # send_email("Reporte diario de alertas y consumo", combined_body)
+    send_email("Reporte diario de alertas y consumo", combined_body)
 
 if alerts_whatsapp_body:
     combined_whatsapp = "\n".join(alerts_whatsapp_body)
